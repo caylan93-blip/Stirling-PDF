@@ -5311,6 +5311,8 @@ rescanFormFields = "Re-scan form fields"
 save = "Save"
 saveShortcut = "Ctrl+S to save"
 saving = "Saving..."
+scriptBlocked = "This PDF button uses an unsupported script"
+scriptBlockedHelp = "Use the app’s Print, Save or form controls instead."
 selectOptionPlaceholder = "— select —"
 skippedEdits_one = "1 change could not be applied:"
 skippedEdits_other = "{{count}} changes could not be applied:"
@@ -6305,7 +6307,10 @@ failed = "OCR operation failed"
 
 [ocr.languagePicker]
 additionalLanguages = "Looking for additional languages?"
+loadFailed = "Could not load OCR languages. Check your connection and try again."
 loading = "Loading available languages..."
+noneInstalled = "No OCR languages are installed. Add English language data to enable text recognition."
+retry = "Retry"
 viewSetupGuide = "View setup guide →"
 
 [ocr.operation]

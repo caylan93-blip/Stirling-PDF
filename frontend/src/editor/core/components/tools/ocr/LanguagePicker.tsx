@@ -6,6 +6,7 @@ import {
   getBrowserLanguagesForOcr,
   getOcrDisplayName,
 } from "@app/utils/languageMapping";
+import { Button } from "@app/ui/Button";
 import apiClient from "@app/services/apiClient";
 import DropdownListWithFooter, {
   DropdownItem,
@@ -42,14 +43,20 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
   );
   const [isLoadingLanguages, setIsLoadingLanguages] = useState(true);
   const [hasAutoFilled, setHasAutoFilled] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    // Fetch available languages from backend
+    let active = true;
     const fetchLanguages = async () => {
+      setIsLoadingLanguages(true);
+      setLoadFailed(false);
       try {
         const { data } = await apiClient.get<{ languages: string[] }>(
           languagesEndpoint,
         );
+
+        if (!active) return;
 
         const displayNames =
           typeof Intl.DisplayNames !== "undefined"
@@ -82,29 +89,41 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
               label: translatedName,
             };
           })
-          .sort((a, b) => a.name.localeCompare(b.name, i18n.language));
+          .sort((a, b) => {
+            const priority = ["eng", "afr", "zul"];
+            const rank = (code: string) => {
+              const index = priority.indexOf(code);
+              return index < 0 ? priority.length : index;
+            };
+            return (
+              rank(a.value) - rank(b.value) ||
+              a.name.localeCompare(b.name, i18n.language)
+            );
+          });
 
         setAvailableLanguages(languageOptions);
-      } catch (error) {
-        console.error("[LanguagePicker] Fetch failed with error:", error);
-        console.error("[LanguagePicker] Error details:", {
-          name: error instanceof Error ? error.name : "Unknown",
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-        });
+      } catch {
+        if (active) {
+          setAvailableLanguages([]);
+          setLoadFailed(true);
+        }
       } finally {
-        setIsLoadingLanguages(false);
+        if (active) setIsLoadingLanguages(false);
       }
     };
 
-    fetchLanguages();
-  }, [languagesEndpoint, i18n.language, t]);
+    void fetchLanguages();
+    return () => {
+      active = false;
+    };
+  }, [languagesEndpoint, i18n.language, t, retryCount]);
 
   // Auto-fill OCR language based on browser language when languages are loaded
   useEffect(() => {
     const shouldAutoFillLanguage =
       autoFillFromBrowserLanguage &&
       !isLoadingLanguages &&
+      !loadFailed &&
       availableLanguages.length > 0 &&
       !hasAutoFilled &&
       value.length === 0;
@@ -129,6 +148,7 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
   }, [
     autoFillFromBrowserLanguage,
     isLoadingLanguages,
+    loadFailed,
     availableLanguages,
     hasAutoFilled,
     value.length,
@@ -143,6 +163,26 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
         <Text size="sm">
           {t("ocr.languagePicker.loading", "Loading available languages...")}
         </Text>
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div role="alert">
+        <Text size="sm">
+          {t(
+            "ocr.languagePicker.loadFailed",
+            "Could not load OCR languages. Check your connection and try again.",
+          )}
+        </Text>
+        <Button
+          variant="secondary"
+          disabled={disabled}
+          onClick={() => setRetryCount((count) => count + 1)}
+        >
+          {t("ocr.languagePicker.retry", "Retry")}
+        </Button>
       </div>
     );
   }
@@ -176,6 +216,20 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
       </div>
     </>
   );
+
+  if (availableLanguages.length === 0) {
+    return (
+      <div role="status">
+        <Text size="sm">
+          {t(
+            "ocr.languagePicker.noneInstalled",
+            "No OCR languages are installed. Add English language data to enable text recognition.",
+          )}
+        </Text>
+        {footer}
+      </div>
+    );
+  }
 
   return (
     <DropdownListWithFooter
