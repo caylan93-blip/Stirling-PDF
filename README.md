@@ -1,3 +1,11 @@
+# English-first usability and security fork
+
+This fork focuses on a dependable macOS PDF workflow, with English as the primary language and Afrikaans/Zulu as secondary OCR priorities. See [fork/README.md](fork/README.md) for the changes, configuration profile, remaining work and license boundaries, and [fork/REVIEW.md](fork/REVIEW.md) for the initial review.
+
+The upstream project description follows. Its release downloads and deployment images do not include this fork's changes.
+
+---
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/main/docs/stirling.png" width="80" alt="Stirling PDF logo">
 </p>

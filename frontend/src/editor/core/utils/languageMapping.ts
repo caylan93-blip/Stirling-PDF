@@ -552,6 +552,12 @@ const languageDefinitions: LanguageDefinition[] = [
     browserCodes: ["af", "af-ZA"],
   },
 
+  {
+    ocrCode: "zul",
+    displayName: "Zulu",
+    browserCodes: ["zu", "zu-ZA"],
+  },
+
   // Swahili
   {
     ocrCode: "swa",
